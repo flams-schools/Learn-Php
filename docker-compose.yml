@@ -1,0 +1,75 @@
+version: "3.8"
+
+services:
+
+  # database postgress
+  db:
+    image: postgres:10
+    container_name: db
+    environment: 
+      POSTGRES_PASSWORD: "php_password"
+      POSTGRES_USER: "php_cookbook"
+      POSTGRES_DB: "php_password"
+    volumes: 
+      - ./postgresdata:/var/lib/postgresql/data
+    networks:
+      - php_cookbook
+
+  # database mysql
+  dbase:
+    image: mysql:8
+    container_name: dbase
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: "php_password"
+      MYSQL_DATABASE: "php_cookbook"
+      MYSQL_USER: "php_cookbook"
+      MYSQL_PASSWORD: "secret"
+    volumes: 
+      - ./mysqldata:/var/lib/mysql
+      - ./data:/app
+    networks: 
+      - php_cookbook
+
+  # server  -- php
+  process:
+    container_name: process
+    build:
+      context: ./php
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src/:/var/www/html
+    networks: 
+      - php_cookbook
+
+  # nginx entry point
+  web:
+    image: nginx:1.17
+    container_name: web
+    working_dir: /var/www/html
+    volumes: 
+      - ./src:/var/www/html
+      - ./nginx/nginx_local_template.conf:/etc/nginx/conf.d/default.conf
+    ports: 
+      - "8089:80"
+    networks:
+      - php_cookbook
+
+  # Redis data 
+  redis:
+    image: redis:5
+    container_name: cache
+    volumes: 
+      - ./redisdata:/data
+    networks:
+      - php_cookbook
+
+volumes:
+  redisdata:
+  postgresdata:
+  mysqldata:
+
+networks: 
+  php_cookbook:
+    driver: bridge

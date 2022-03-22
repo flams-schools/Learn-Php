@@ -1,0 +1,6 @@
+postgresdata/
+mysqldata
+redisdata
+
+.idea/
+.vscode/
